@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState,useCallback} from 'react';
 import {
   Image,
   Text,
@@ -13,86 +13,17 @@ import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
-
+import {useFocusEffect} from '@react-navigation/native';
+import axios from 'axios';
 const TopTab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
 
-const Introduction = () => {
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.IntroductionTop}>
-        <Text style={styles.Chapter}>615</Text>
-        <Text style={{color: 'grey', textAlign: 'center'}}>Chương</Text>
-      </View>
-      <Text style={styles.IntroductionContent}>ádasdsad</Text>
-    </ScrollView>
-  );
-};
 
-const Chapter = ({navigation}) => {
-  const [data, setData] = useState([
-    {
-      chapter: '1',
-      name: '10000',
-    },
-    {
-      chapter: '2',
-      name: '20000',
-    },
-    {
-      chapter: '3',
-      name: '30000',
-    },
-    {
-      chapter: '4',
-      name: '40000',
-    },
-    {
-      chapter: '5',
-      name: '50000',
-    },
-  ]);
-  return (
-    
-      <FlatList
-        data={data}
-        keyExtractor={item => item.chapter}
-        renderItem={({item}) => {
-          return (
-            <TouchableOpacity style={styles.chapterContainer} onPress={() => navigation.navigate('Read')}>
-              <Text style={styles.chapterList} >
-                Chương {item.chapter}: {item.name}
-              </Text>
-            </TouchableOpacity>
-          );
-        }}
-        showsVerticalScrollIndicator={false}
-      />
-   
-  );
-};
 
-const TopStorage = ({navigation}) => (
-  <TopTab.Navigator
-    style={{flex: 1}}
-    initialRouteName="Giới thiệu"
-    screenOptions={{
-      tabBarStyle: {backgroundColor: '#262626'},
-      tabBarIndicatorStyle: {backgroundColor: 'white'},
-      tabBarLabelStyle: {color: 'white'},
-    }}>
-    <TopTab.Screen name="Giới thiệu" component={Introduction} />
-    <TopTab.Screen name="D.S Chương" component={Chapter} />
-  </TopTab.Navigator>
-);
-
-const Story = ({navigation}) => {
+const Story = ({navigation,route}) => {
   const [flag, SetFlag] = useState(false);
   const [mark, SetMark] = useState('');
   const [content, SetContent] = useState('');
-  let title = 'Mê Vụ Thế Giới Đại Lãnh Chúa';
-  let category = 'Võng du';
-
   function Mark(newflag) {
     SetFlag(newflag);
     if (newflag) {
@@ -106,6 +37,91 @@ const Story = ({navigation}) => {
   useEffect(() => {
     Mark(flag);
   }, []);
+
+  const {id, url, name, category, intro, total} = route.params;
+
+  const [data, setData] = useState([]);
+
+  const fetchdata = id => {
+    axios
+      .get('http://10.60.2.9:8880/v1/api/chapter/' + id)
+      .then(response => {
+        setData(response.data.result[0].Chapters);
+        console.log(data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  };
+  useFocusEffect(
+    useCallback(() => {
+      axios
+        .get('http://10.60.2.9:8880/v1/api/chapter/' + id)
+        .then(response => {
+          setData(response.data.result[0].Chapters);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }, []),
+  );
+  useEffect(() => {
+    fetchdata(id);
+  }, []);
+
+  const Introduction = () => {
+    return (
+      <ScrollView style={styles.container}>
+        <View style={styles.IntroductionTop}>
+          <Text style={styles.Chapter}>{total}</Text>
+          <Text style={{color: 'grey', textAlign: 'center'}}>Chương</Text>
+        </View>
+        <Text style={styles.IntroductionContent}>{intro}</Text>
+      </ScrollView>
+    );
+  };
+
+  const Chapter = ({navigation}) => {
+    
+    return (
+      <View style={{flex: 1, backgroundColor: '#262626'}}>
+        <FlatList
+          data={data}
+          keyExtractor={item => item.id}
+          renderItem={({item}) => {
+            return (
+              <TouchableOpacity style={styles.chapterContainer} onPress={() => navigation.navigate('Read', {
+                id:item.id,
+                name: item.name,
+                content: item.content,
+                order: item.orderNumber,
+              })}>
+                <Text style={styles.chapterList} >
+                  Chương {item.chapter}: {item.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+          showsVerticalScrollIndicator={false}
+        />
+     </View>
+    );
+  };
+  
+  const TopStorage = ({navigation}) => (
+    <TopTab.Navigator
+      style={{flex: 1}}
+      initialRouteName="Giới thiệu"
+      screenOptions={{
+        tabBarStyle: {backgroundColor: '#262626'},
+        tabBarIndicatorStyle: {backgroundColor: 'white'},
+        tabBarLabelStyle: {color: 'white'},
+      }}>
+      <TopTab.Screen name="Giới thiệu" component={Introduction} />
+      <TopTab.Screen name="D.S Chương" component={Chapter} />
+    </TopTab.Navigator>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -115,13 +131,17 @@ const Story = ({navigation}) => {
           <Icon name="arrow-left" size={25} color="white" />
         </TouchableOpacity>
         <View style={styles.story}>
-          <Image source={require('./img/1.jpg')} style={styles.avatar} />
+          <Image source={{uri:'http://10.60.2.9:8080/'+ url}} style={styles.avatar} />
           <View style={styles.contentSide}>
             <Text style={styles.category}>{category}</Text>
-            <Text style={styles.content}>{title}</Text>
-            <Text style={{color: 'white'}}>Đánh giá: 4.5 ()</Text>
+            <Text style={styles.content}>{name}</Text>
+            <Text style={{color: 'white'}}>Đánh giá: 4.5</Text>
             <View style={styles.readButtonSide}>
-              <TouchableOpacity onPress={()=> navigation.navigate('Read')}>
+              <TouchableOpacity onPress={()=> navigation.navigate('Read', {
+                    name: item.name,
+                    content: item.content,
+                    order: item.orderNumber,
+                  })}>
                 <Text style={styles.readButton}>Đọc truyện</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -134,7 +154,7 @@ const Story = ({navigation}) => {
           </View>
         </View>
         <Image
-          source={require('./img/1.jpg')}
+          source={{uri:'http://10.60.2.9:8080/'+ url}}
           style={styles.overlay}
           resizeMode="cover"
           blurRadius={10}

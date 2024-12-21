@@ -4,7 +4,10 @@ import {StyleSheet} from 'react-native';
 import StorageScreen from './Storage';
 import AuthorStorage from './AuthorStorage';
 import AuthorStory from './AuthorStory';
+import InputNewStory from './InputNewStory';
+import InputNewChapter from './InputNewChapter';
 import {createStackNavigator} from '@react-navigation/stack';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
@@ -98,16 +101,10 @@ const Explore = () => {
           title: 'Truyện Mới',
         }}
       />
+      
       <Stack.Screen
         name={'Story'}
         component={StoryScreen}
-        options={({navigation}) => ({
-          headerShown: false,
-        })}
-      />
-      <Stack.Screen
-        name={'Read'}
-        component={ReadScreen}
         options={({navigation}) => ({
           headerShown: false,
         })}
@@ -125,13 +122,16 @@ const Author = () => {
       screenOptions={{
         headerStyle: {
           backgroundColor: '#262626',
+          
         },
         headerTintColor: '#fff',
       }}>
       <Stack.Screen
         name={'AuthorStorage'}
         component={AuthorStorage}
+        
         options={{
+          
           title: 'Truyện Của Bạn'
         }}
       />
@@ -143,6 +143,25 @@ const Author = () => {
       
         }}
       />
+      
+      <Stack.Screen
+        name={'InputNewStory'}
+        component={InputNewStory}
+        options={{
+          title: 'Truyện'
+      
+        }}
+      />
+      
+      <Stack.Screen
+        name={'InputNewChapter'}
+        component={InputNewChapter}
+        options={{
+          title: 'Chương'
+      
+        }}
+      />
+      
     </Stack.Navigator>
   );
 };
@@ -158,9 +177,10 @@ const BottomNavigator = () => {
   return (
     <bottomTab.Navigator
       initialRouteName="Tủ Truyện"
+      
       screenOptions={({route}) => ({
         tabBarStyle: {backgroundColor: '#262626'},
-
+        
         tabBarIcon: ({focused, color}) => {
           let iconName = '';
           if (route.name === 'Tủ Truyện') {
@@ -200,9 +220,10 @@ const BottomNavigator = () => {
         name="Truyện Của Bạn"
         component={Author}
         options={{
+          
           headerShown: false,
-          headerStyle: {backgroundColor: '#262626'},
-          headerTintColor: '#fff',
+          // headerStyle: {backgroundColor: '#262626'},
+          // headerTintColor: '#fff',
         }}
       />
       <bottomTab.Screen
@@ -219,7 +240,10 @@ const BottomNavigator = () => {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const App = () => {
+const App = ({route}) => {
+  const {data} = route.params;
+  console.log(data);
+  
   return <Storage />;
 };
 export default App;

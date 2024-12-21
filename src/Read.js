@@ -12,7 +12,7 @@ import {StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const Read = ({route, navigation}) => {
-  // const {id} = route.params;
+  const {name,content,order} = route.params;
   const content1 = `Vũ Quốc, Lăng Gia ở Thương Vân Trấn, trăng treo giữa trời.
 
 Lăng Hàn bỏ ra ròng rã mười giây, mới rốt cục khẳng định, hắn xác thực chuyển thế sống lại.
@@ -61,7 +61,7 @@ Khó mà tin nổi!
     if (contentOffset.y <= 0 && !isAtTop) {
       setIsAtTop(true);
       setIsAtBottom(false); 
-      Alert.alert('Thông báo', 'Bạn đã cuộn lên đầu!');
+      
     } 
     // Kiểm tra nếu cuộn tới cuối
     else if (
@@ -90,9 +90,9 @@ Khó mà tin nổi!
         <Icon name="chevron-left" size={20} style={styles.goback} />
       </TouchableOpacity>
       <Text style={styles.title}>
-        {/* Chương {chapter}: {name} */}
+        Chương {order}: {name}
       </Text>
-      <Text style={styles.content}>{data}</Text>
+      <Text style={styles.content}>{content}</Text>
     </ScrollView>
   );
 };

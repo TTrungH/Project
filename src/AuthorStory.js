@@ -1,4 +1,5 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useCallback} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
 import {
   Image,
   Text,
@@ -7,112 +8,171 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
+  Alert,
 } from 'react-native';
 import {StyleSheet} from 'react-native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
-
+import axios from 'axios';
 const TopTab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
 
-const Introduction = () => {
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.IntroductionTop}>
-        <Text style={styles.Chapter}>615</Text>
-        <Text style={{color: 'grey', textAlign: 'center'}}>Chương</Text>
+const Story = ({navigation, route}) => {
+  const {id, url, name, category, intro, total} = route.params;
+
+  const [data, setData] = useState([]);
+
+  const fetchdata = id => {
+    axios
+      .get('http://10.60.2.9:8880/v1/api/chapter/' + id)
+      .then(response => {
+        setData(response.data.result[0].Chapters);
+        console.log(data);
+        
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  };
+  useFocusEffect(
+    useCallback(() => {
+      axios
+        .get('http://10.60.2.9:8880/v1/api/chapter/' + id)
+        .then(response => {
+          setData(response.data.result[0].Chapters);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }, []),
+  );
+  useEffect(() => {
+    fetchdata(id);
+  }, []);
+
+  const Introduction = () => {
+    return (
+      <ScrollView style={styles.container}>
+        <View style={styles.IntroductionTop}>
+          <Text style={styles.Chapter}>{total}</Text>
+          <Text style={{color: 'grey', textAlign: 'center'}}>Chương</Text>
+        </View>
+        <Text style={styles.IntroductionContent}>{intro}</Text>
+      </ScrollView>
+    );
+  };
+
+  const Chapter = ({navigation}) => {
+    const handleDelete = (id, chapterId) => {
+      Alert.alert(
+        'Warning',
+        'Are you sure you want to remove this Book? This operation cannot be returned.',
+        [
+          {
+            text: 'CANCEL',
+            style: 'cancel',
+          },
+          {
+            text: 'DELETE',
+            onPress: () => deleteData(id, chapterId),
+            style: 'destructive',
+          },
+        ],
+      );
+    };
+    const deleteData = async (id, chapterId) => {
+      try {
+        deletedata(id, chapterId);
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+    const deletedata = (id, chapterId) => {
+      axios
+        .delete(
+          'http://10.60.2.9:8880/v1/api/chapter/delete/' +
+            id +
+            '/' +
+            chapterId,
+
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    };
+
+    return (
+      <View style={{flex: 1, backgroundColor: '#262626'}}>
+        <FlatList
+          data={data}
+          keyExtractor={item => item.orderNumber}
+          renderItem={({item}) => {
+            return (
+              <TouchableOpacity
+                style={styles.chapterContainer}
+                onPress={() =>
+                  navigation.navigate('Read', {
+                    name: item.name,
+                    content: item.content,
+                    order: item.orderNumber,
+                  })
+                }>
+                <Text style={styles.chapterList}>
+                  Chương {item.orderNumber}: {item.name}
+                </Text>
+                <View style={styles.ButtonSide}>
+                  <TouchableOpacity
+                    style={styles.Edit}
+                    onPress={() =>
+                      navigation.navigate('InputNewChapter', {
+                        type: 'edit',
+                        id: item.id,
+                        name: item.name,
+                        content: item.content,
+                      })
+                    }>
+                    <Icon name="note-edit-outline" color="blue" size={18} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleDelete(
+                        id,
+                        item.id,
+                      )
+                    }>
+                    <Icon name="trash-can-outline" color="red" size={18} />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+          showsVerticalScrollIndicator={false}
+        />
       </View>
-      <Text style={styles.IntroductionContent}>ádasdsad</Text>
-    </ScrollView>
+    );
+  };
+  const TopStorage = ({navigation}) => (
+    <TopTab.Navigator
+      style={{flex: 1}}
+      initialRouteName="Giới thiệu"
+      screenOptions={{
+        tabBarStyle: {backgroundColor: '#262626'},
+        tabBarIndicatorStyle: {backgroundColor: 'white'},
+        tabBarLabelStyle: {color: 'white'},
+      }}>
+      <TopTab.Screen name="Giới thiệu" component={Introduction} />
+      <TopTab.Screen name="D.S Chương" component={Chapter} />
+    </TopTab.Navigator>
   );
-};
 
-const Chapter = ({navigation}) => {
-  const [data, setData] = useState([
-    {
-      chapter: '1',
-      name: '10000',
-    },
-    {
-      chapter: '2',
-      name: '20000',
-    },
-    {
-      chapter: '3',
-      name: '30000',
-    },
-    {
-      chapter: '4',
-      name: '40000',
-    },
-    {
-      chapter: '5',
-      name: '50000',
-    },
-  ]);
-  return (
-    
-      <FlatList
-        data={data}
-        keyExtractor={item => item.chapter}
-        renderItem={({item}) => {
-          return (
-            <TouchableOpacity style={styles.chapterContainer} onPress={() => navigation.navigate('Read')}>
-              <Text style={styles.chapterList} >
-                Chương {item.chapter}: {item.name}
-              </Text>
-              <View style={styles.ButtonSide}>
-              <TouchableOpacity>
-                <Icon name='note-edit'/>
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Icon name='trash-can'/>
-              </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          );
-        }}
-        showsVerticalScrollIndicator={false}
-      />
-   
-  );
-};
-
-const TopStorage = ({navigation}) => (
-  <TopTab.Navigator
-    style={{flex: 1}}
-    initialRouteName="Giới thiệu"
-    screenOptions={{
-      tabBarStyle: {backgroundColor: '#262626'},
-      tabBarIndicatorStyle: {backgroundColor: 'white'},
-      tabBarLabelStyle: {color: 'white'},
-    }}>
-    <TopTab.Screen name="Giới thiệu" component={Introduction} />
-    <TopTab.Screen name="D.S Chương" component={Chapter} />
-  </TopTab.Navigator>
-);
-
-const Story = ({navigation}) => {
-//   const [flag, SetFlag] = useState(false);
-//   const [mark, SetMark] = useState('');
-//   const [content, SetContent] = useState('');
-  let title = 'Mê Vụ Thế Giới Đại Lãnh Chúa';
-  let category = 'Võng du';
-//   function Mark(newflag) { 
-//     SetFlag(newflag);
-//     if (newflag) {
-//       SetMark('-');
-//       SetContent('Xóa khỏi \nTủ truyện');
-//     } else {
-//       SetMark('+');
-//       SetContent('Thêm vào \nTủ truyện');
-//     }
-//   }
-//   useEffect(() => {
-//     Mark(flag);
-//   }, []);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -122,14 +182,25 @@ const Story = ({navigation}) => {
           <Icon name="arrow-left" size={25} color="white" />
         </TouchableOpacity>
         <View style={styles.story}>
-          <Image source={require('./img/1.jpg')} style={styles.avatar} />
+          <Image
+            source={{uri: 'http://10.60.2.9:8080/' + url}}
+            style={styles.avatar}
+          />
           <View style={styles.contentSide}>
             <Text style={styles.category}>{category}</Text>
-            <Text style={styles.content}>{title}</Text>
+            <Text style={styles.content}>{name}</Text>
             <Text style={{color: 'white'}}>Đánh giá: 4.5 </Text>
             <View style={styles.readButtonSide}>
               <TouchableOpacity
-                style={{flexDirection: 'row'}}>
+                style={{flexDirection: 'row'}}
+                onPress={() =>
+                  navigation.navigate('InputNewChapter', {
+                    type: 'add',
+                    id: id,
+                    name: '',
+                    content: '',
+                  })
+                }>
                 <Text style={styles.mark}>+</Text>
                 <Text style={styles.contentMark}>Thêm Chương Mới</Text>
               </TouchableOpacity>
@@ -137,7 +208,7 @@ const Story = ({navigation}) => {
           </View>
         </View>
         <Image
-          source={require('./img/1.jpg')}
+          source={{uri: 'http://10.60.2.9:8080/' + url}}
           style={styles.overlay}
           resizeMode="cover"
           blurRadius={10}
@@ -157,10 +228,19 @@ const styles = StyleSheet.create({
     fontSize: 25,
     textAlign: 'center',
   },
+  ButtonSide: {
+    flexDirection: 'row',
+  },
   IntroductionTop: {
     backgroundColor: '#2F2F2F',
     paddingHorizontal: 20,
     paddingVertical: 12,
+  },
+  Edit: {
+    color: 'ocean',
+  },
+  Delete: {
+    color: 'red',
   },
   IntroductionContent: {
     color: 'white',
@@ -192,11 +272,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#262626',
   },
   chapterContainer: {
-    flexDirection:'row',
+    flexDirection: 'row',
     flex: 1,
     backgroundColor: '#262626',
     paddingHorizontal: 20,
     paddingVertical: 8,
+    justifyContent: 'space-between',
   },
   chapterList: {
     color: 'white',
@@ -247,7 +328,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   contentMark: {
-    fontWeight:'bold',
+    fontWeight: 'bold',
     paddingHorizontal: 6,
     alignItems: 'center',
     color: 'white',

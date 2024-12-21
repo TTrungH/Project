@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AccountScreen from './Account';
 import StoryScreen from './Single';
 import ReadScreen from './Read';
-import ExploreScreen from './Explore';
+import Customer from './SpeCustomer';
 import {Image, View} from 'react-native';
 const Stack = createStackNavigator();
 const TopTab = createMaterialTopTabNavigator();
@@ -37,18 +37,18 @@ const Storage = () => {
         }}
       />
       <Stack.Screen
-        name={'Story'}
-        component={StoryScreen}
-        options={({navigation}) => ({
-          headerShown: false,
-        })}
+        name={'Customer'}
+        component={Customer}
+        options={{
+          title:''
+        }}
       />
       <Stack.Screen
-        name={'Read'}
-        component={ReadScreen}
-        options={({navigation}) => ({
+        name={'CustomerList'}
+        component={CustomerList}
+        options={{
           headerShown: false,
-        })}
+        }}
       />
     </Stack.Navigator>
   );
@@ -81,57 +81,42 @@ const Account = () => {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////--------------------EXPLORE-SCREEN---------------------///////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-const Explore = () => {
-  return (
-    <Stack.Navigator
-      initialRouteName="Explore"
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: '#262626',
-        },
-        headerTintColor: '#fff',
-      }}>
-      <Stack.Screen
-        name={'Explore'}
-        component={ExploreScreen}
-        options={{
-          title: 'Truyện Mới',
-        }}
-      />
-      <Stack.Screen
-        name={'Story'}
-        component={StoryScreen}
-        options={({navigation}) => ({
-          headerShown: false,
-        })}
-      />
-      <Stack.Screen
-        name={'Read'}
-        component={ReadScreen}
-        options={({navigation}) => ({
-          headerShown: false,
-        })}
-      />
-    </Stack.Navigator>
-  );
-};
+// const Explore = () => {
+//   return (
+//     <Stack.Navigator
+//       initialRouteName="Explore"
+//       screenOptions={{
+//         headerStyle: {
+//           backgroundColor: '#262626',
+//         },
+//         headerTintColor: '#fff',
+//       }}>
+//       <Stack.Screen
+//         name={'Explore'}
+//         component={ExploreScreen}
+//         options={{
+//           title: 'Truyện Mới',
+//         }}
+//       />
+//       <Stack.Screen
+//         name={'Story'}
+//         component={StoryScreen}
+//         options={({navigation}) => ({
+//           headerShown: false,
+//         })}
+//       />
+//       <Stack.Screen
+//         name={'Read'}
+//         component={ReadScreen}
+//         options={({navigation}) => ({
+//           headerShown: false,
+//         })}
+//       />
+//     </Stack.Navigator>
+//   );
+// };
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////--------------------ACCOUNT-SCREEN---------------------///////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// const TopStorage = () => (
-//   <TopTab.Navigator
-//     initialRouteName="Giới thiệu"
-//     screenOptions={{
-//       tabBarStyle: {backgroundColor: '#262626'},
-//       tabBarIndicatorStyle: {backgroundColor: 'white'},
-//       tabBarLabelStyle: {color: 'white'},
-//     }}>
-//     <TopTab.Screen name="Giới thiệu" component={StoryScreen} />
-//     <TopTab.Screen name="D.S Chương" component={Account} />
-//   </TopTab.Navigator>
-// );
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////--------------------tOP-MENU---------------------//////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,19 +126,21 @@ const Explore = () => {
 const BottomNavigator = () => {
   return (
     <bottomTab.Navigator
-      initialRouteName="Tủ Truyện"
+      initialRouteName="Danh Sách Người Dùng"
       screenOptions={({route}) => ({
         tabBarStyle: {backgroundColor: '#262626'},
 
         tabBarIcon: ({focused, color}) => {
           let iconName = '';
-          if (route.name === 'Tủ Truyện') {
+          if (route.name === 'Danh Sách Người Dùng') {
             iconName = focused ? 'book-open-variant' : 'book-multiple';
-          } else if (route.name === 'Khám Phá') {
-            iconName = focused ? 'book-search' : 'book-search-outline';
-          } else if (route.name === 'Xếp Hạng') {
-            iconName = focused ? 'chart-box' : 'chart-box-outline';
-          } else if (route.name === 'Tài Khoản') {
+          } 
+          // else if (route.name === 'Khám Phá') {
+          //   iconName = focused ? 'book-search' : 'book-search-outline';
+          // } else if (route.name === 'Xếp Hạng') {
+          //   iconName = focused ? 'chart-box' : 'chart-box-outline';
+          // } 
+          else if (route.name === 'Tài Khoản') {
             iconName = focused ? 'account-box' : 'account-box-outline';
           }
           return <Icon name={iconName} size={25} color={color} />;
@@ -162,16 +149,16 @@ const BottomNavigator = () => {
         tabBarActiveTintColor: 'white',
       })}>
       <bottomTab.Screen
-        name="Tủ Truyện"
+        name="Danh Sách Người Dùng"
         component={CustomerList}
         options={{
-          headerTitle: 'Tủ Truyện',
+         title: 'Người Dùng' ,
           headerStyle: {backgroundColor: '#262626'},
           headerTintColor: '#fff',
         }}
       />
 
-      <bottomTab.Screen
+      {/* <bottomTab.Screen
         name="Khám Phá"
         component={Explore}
         options={{
@@ -179,7 +166,8 @@ const BottomNavigator = () => {
           headerStyle: {backgroundColor: '#262626'},
           headerTintColor: '#fff',
         }}
-      />
+      /> */}
+
       <bottomTab.Screen
         name="Tài Khoản"
         component={Account}

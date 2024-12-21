@@ -1,117 +1,136 @@
+import 'react-native-gesture-handler';
+import React, {useState,useEffect} from 'react';
 import {
-    View,
-    Text,
-    FlatList,
-  } from 'react-native';
-  import {useState} from 'react';
-  import axios from 'axios';
-  import {StyleSheet,ScrollView,} from 'react-native';
-  const CustomerList = ({route, navigation}) => {
-    const [name, setName] = useState('');
-  const [phone, setPhone] = useState(0);
-  const [totalSpent, setTotalSpent] = useState(0);
-  const [transactions, setTransactions] = useState([]);
-  
+  Text,
+  View,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {StyleSheet} from 'react-native';
+import axios from 'axios';
+const StorageScreen = ({navigation}) => {
+  const [data, setData] = useState([]);
+  const handleDelete = (id) => {
+    Alert.alert(
+      'Warning',
+      'Are you sure you want to remove this service? This operation cannot be returned.',
+      [
+        {
+          text: 'CANCEL',
+          style: 'cancel',
+        },
+        {
+          text: 'DELETE',
+          onPress: ()=>deleteData(id),
+          style: 'destructive',
+        },
+      ],
+    );
+  };
+  const deleteData = async (id) => {
+    try {
+     
+        deletedata( id);
+      
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+  const deletedata = ( id) => {
+    axios
+      .delete(
+        'http://10.60.2.9:8880/v1/api/user/delete/' + id,
+
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      .then(response => {
+        console.log('Response:', response.data);
+        fetchdata();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  };
+  const fetchdata = () => {
+    axios
+      .get('http://10.60.2.9:8880/v1/api/user/')
+      .then(response => {
+        console.log('Response:', response.data.result);
+        setData(response.data.result);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  };
+  useEffect(() => {
+    fetchdata();
+  }, []);
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
-      <View style={styles.transactionDetailContainer}>
-        <Text style={styles.transactionDetailTitle}>General information</Text>
-        <View style={styles.TransactionDetailInf}>
-          <View>
-            <Text style={styles.transactionDetail}>
-              Name <Text>{name}</Text>
-            </Text>
-            <Text style={styles.transactionDetail}>
-              Phone <Text>{phone}</Text>
-            </Text>
-            <Text style={styles.transactionDetail}>
-              Total spent <Text>{totalSpent}</Text>
-            </Text>
-            <Text style={styles.transactionDetail}>Time </Text>
-            <Text style={styles.transactionDetail}>Last update </Text>
-          </View>
-        </View>
-      </View>
-      <View style={styles.transactionDetailContainer}>
-        <Text style={styles.transactionDetailTitle}>Transaction history</Text>
-        <FlatList
-          data={transactions}
-          keyExtractor={item => item._id}
-          scrollEnabled={true}
-          renderItem={({item}) => {
-            return (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('')}
-                style={styles.productContainer}>
-                <Text style={styles.transactionId}>
-                  {item.id} - {item.createdAt}
-                  <FlatList
-                    data={item.services}
-                    scrollEnabled={false}
-                    keyExtractor={item => item._id}
-                    renderItem={({item}) => {
-                      return (
-                        <Text
-                          style={styles.transactionContent}
-                          ellipsizeMode="tail"
-                          numberOfLines={1}>
-                          - {item.name}
-                        </Text>
-                      );
-                    }}
-                  />
-                </Text>
-                <Text style={styles.transactionPrice}>{item.price}đ</Text>
-              </TouchableOpacity>
-            );
-          }}
-        />
-      </View>
-    </ScrollView>
+    <FlatList
+      data={data}
+      keyExtractor={item => item.chapter}
+      style={styles.container}
+      renderItem={({item}) => {
+        return (
+          <TouchableOpacity
+            style={styles.story}
+            onPress={() => navigation.navigate('Customer')}>
+            <Image
+              source={{uri: 'http://10.60.2.9:8080/' + item.id+'.jpg'}}
+              style={styles.avatar}
+            />
+            <Text style={styles.content}>{item.username}</Text>
+            <Icon
+              name="trash-can"
+              style={styles.remove}
+              size={15}
+              onPress={()=>handleDelete(item.id)}
+            />
+          </TouchableOpacity>
+        );
+      }}
+      showsVerticalScrollIndicator={false}
+    />
   );
-  };
-  
-  export default CustomerList;
-  const styles = StyleSheet.create({
-    detailContainer: {
-        flex: 1,
-        padding:5
-      },
-      transactionDetailContainer: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        margin: 10,
-        padding: 10,
-      },
-      transactionDetailTitle: {
-        color: '#EF506B',
-        fontSize: 15,
-        fontWeight: 'bold',
-      },
-      TransactionDetailInf: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginTop: 10,
-      },
-      transactionDetail: {
-        color: 'grey',
-        fontWeight: 'bold',
-        fontSize: 12,
-      },
-      TransactionDetailPrice: {
-        fontWeight: 'bold',
-        fontSize: 12,
-      },
-      TransactionDetailTotal: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginTop: 10,
-        paddingTop: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#F4F4F4',
-      },
-  });
-  
+};
+export default StorageScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#2F2F2F',
+  },
+  story: {
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    marginVertical: 10,
+  },
+  remove: {
+    color: 'red',
+    width: '8%',
+    marginTop: 5,
+  },
+  avatar: {
+    width: 70,
+    height: 70,
+    borderRadius: 50,
+    marginRight: 15,
+  },
+  content: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: 'white',
+    width: '69%',
+  },
+});

@@ -8,7 +8,7 @@ const StorageScreen = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View style={styles.topAccount}>
-        <Image source={require('./img/1.jpg')} style={styles.avatar} />
+        <Image source={{uri: 'http://10.60.2.9:8080/1.jpg'}} style={styles.avatar} />
         <Text style={styles.name}>Trần Trung Hậu</Text>
       </View>
       <TouchableOpacity style={styles.object}>

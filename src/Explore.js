@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import React, {useState} from 'react';
+import React, {useState,useCallback,useEffect} from 'react';
 import {
   Text,
   View,
@@ -10,35 +10,57 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {StyleSheet} from 'react-native';
-
+import axios from 'axios';
+import {useFocusEffect} from '@react-navigation/native';
 const ExploreScreen = ({navigation}) => {
   const [data, setData] = useState([
-    {id: require('./img/1.jpg'), stt: '1', name: 'name1'},
-    {id: require('./img/2.jpg'), stt: '2', name: 'name2'},
-    {id: require('./img/3.jpg'), stt: '3', name: 'name3'},
-    {id: require('./img/4.jpg'), stt: '4', name: 'name4'},
-    {id: require('./img/5.jpg'), stt: '5', name: 'name5'},
-    {id: require('./img/6.jpg'), stt: '6', name: 'name6'},
-    {id: require('./img/7.jpg'), stt: '7', name: 'name7'},
-    {id: require('./img/8.jpg'), stt: '8', name: 'name8'},
-    {id: require('./img/9.jpg'), stt: '9', name: 'name9'},
-    {id: require('./img/10.jpg'), stt: '10', name: 'name10'},
+    
   ]);
-
+  useFocusEffect(
+    useCallback(() => {
+      axios
+        .get('http://10.60.2.9:8880/v1/api/book/')
+        .then(response => {
+          setData(response.data.result);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }, []),
+  );
+  const fetchdata = () => {
+    axios
+      .get('http://10.60.2.9:8880/v1/api/book/')
+      .then(response => {
+        console.log('Response:', response.data.result);
+        setData(response.data.result);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  };
+  useEffect(() => {
+    fetchdata();
+  }, []);
   const limitedData = data.slice(0, 6); // Giới hạn danh sách chỉ hiển thị 3 phần tử đầu tiên
-
-  const [avatar, setAvatar] = useState(require('./img/1.jpg'));
+const [id,setId] = useState('');
+const [total,setTotal] = useState('');
+  const [avatar, setAvatar] = useState('/1.jpg');
   const [title, setTitle] = useState('Suong mu the gioi dai lanh chua');
-  const [catagory, setCatagory] = useState('Đồng nhân');
+  const [category, setCatagory] = useState('Đồng nhân');
   const [intro, setIntro] = useState(
     'ahdkashdkjashdkjadhjasdhkjashaksjdhjashdkjashjkasdasdadsa',
   );
-
+function changeFont(id,total,name,image,category,intro){
+setId(id);
+setTotal(total);
+setAvatar(image);
+setTitle(name);
+setCatagory(category);
+setIntro(intro)
+}
   return (
     <ScrollView style={styles.container}>
-
-
-
       
       <View>
         <TouchableOpacity
@@ -51,29 +73,36 @@ const ExploreScreen = ({navigation}) => {
           data={data}
           horizontal={true}
           showsVerticalScrollIndicator={false}
-          keyExtractor={item => item.stt.toString()}
+          keyExtractor={item => item.id}
           // numColumns={3}
 
           renderItem={({item}) => {
             return (
-              <TouchableOpacity>
-                <Image source={item.id} style={styles.avatar} />
+              <TouchableOpacity onPress={()=>changeFont(item.id,item.totalChapter,item.name,item.imageUrl,item.category,item.description)}>
+                <Image source={{uri:'http://10.60.2.9:8080/' + item.imageUrl}} style={styles.avatar} />
               </TouchableOpacity>
             );
           }}
         />
         <TouchableOpacity
           style={styles.news}
-          onPress={() => navigation.navigate('Story')}>
+          onPress={() => navigation.navigate('Story',{
+            total: total,
+            id: id,
+            url: avatar,
+            name: title,
+            category: category,
+            intro: intro,
+          })}>
           <View style={styles.newsContent}>
-            <Text style={styles.catagory}>{catagory}</Text>
+            <Text style={styles.catagory}>{category}</Text>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.intro} numberOfLines={2}>
               {intro}
             </Text>
-            <Text style={styles.rate}>Rate: {title}</Text>
+            <Text style={styles.rate}>Rate: 5</Text>
           </View>
-          <Image source={avatar} style={styles.newsAvatar} />
+          <Image source={{uri:'http://10.60.2.9:8080/' + avatar}} style={styles.newsAvatar} />
         </TouchableOpacity>
       </View>
       
@@ -90,14 +119,21 @@ const ExploreScreen = ({navigation}) => {
         <FlatList
           data={limitedData}
           showsVerticalScrollIndicator={false}
-          keyExtractor={item => item.stt.toString()}
+          keyExtractor={item => item.id}
           numColumns={3}
           renderItem={({item}) => {
             return (
-              <TouchableOpacity style={styles.eachSection}>
-                <Image source={item.id} style={styles.avatarSpe} />
+              <TouchableOpacity style={styles.eachSection} onPress={() => navigation.navigate('Story',{
+                total: item.totalChapter,
+                id: item.id,
+                url: item.imageUrl,
+                name: item.name,
+                category: item.category,
+                intro: item.description,
+              })}>
+                <Image source={{uri:'http://10.60.2.9:8080/' + item.imageUrl}} style={styles.avatarSpe} />
                 <Text style={styles.title} numberOfLines={2}>
-                  {title}
+                  {item.name}
                 </Text>
               </TouchableOpacity>
             );
@@ -118,14 +154,21 @@ const ExploreScreen = ({navigation}) => {
         <FlatList
           data={data}
           showsVerticalScrollIndicator={false}
-          keyExtractor={item => item.stt.toString()}
+          keyExtractor={item => item.id}
           horizontal={true}
           renderItem={({item}) => {
             return (
-              <TouchableOpacity style={styles.ListContainer}>
-                <Image source={item.id} style={styles.avatarSpe} />
+              <TouchableOpacity style={styles.ListContainer} onPress={() => navigation.navigate('Story',{
+                total: item.totalChapter,
+                id: item.id,
+                url: item.imageUrl,
+                name: item.name,
+                category: item.category,
+                intro: item.description,
+              })}>
+                <Image source={{uri:'http://10.60.2.9:8080/' + item.imageUrl}} style={styles.avatarSpe} />
                 <Text style={styles.title} numberOfLines={2}>
-                  {title}
+                  {item.name}
                 </Text>
               </TouchableOpacity>
             );
@@ -140,21 +183,28 @@ const ExploreScreen = ({navigation}) => {
       <View>
         <TouchableOpacity
           style={styles.news}
-          onPress={() => navigation.navigate('Story')}>
+          >
           <Text style={styles.section}>TRUYỆN HOÀN THÀNH</Text>
           <Icon name="chevron-right" size={25} style={styles.goback} />
         </TouchableOpacity>
         <FlatList
           data={limitedData}
           showsVerticalScrollIndicator={false}
-          keyExtractor={item => item.stt.toString()}
+          keyExtractor={item => item.id}
           numColumns={3}
           renderItem={({item}) => {
             return (
-              <TouchableOpacity style={styles.eachSection}>
-                <Image source={item.id} style={styles.avatarSpe} />
+              <TouchableOpacity style={styles.eachSection} onPress={() => navigation.navigate('Story',{
+                total: item.totalChapter,
+                id: item.id,
+                url: item.imageUrl,
+                name: item.name,
+                category: item.category,
+                intro: item.description,
+              })}>
+                <Image source={{uri:'http://10.60.2.9:8080/' + item.imageUrl}} style={styles.avatarSpe} />
                 <Text style={styles.title} numberOfLines={2}>
-                  {title}
+                  {item.name}
                 </Text>
               </TouchableOpacity>
             );
